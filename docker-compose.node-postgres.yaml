@@ -1,0 +1,38 @@
+# PostgreSQL 17 service for DDEV (from the docktopus stack).
+#ddev-generated
+#
+# Database for the Node API provided by ddev-docktopus-node-api.
+# Configuration lives in .ddev/.env.ddev-docktopus-postgres
+# From inside the containers the host is simply: postgres
+#
+# This is an extra database, not DDEV's main "db" service; the project's
+# main database type (MariaDB/MySQL) is untouched.
+
+services:
+  postgres:
+    image: postgres:17
+    container_name: ddev-${DDEV_SITENAME}-postgres
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-nodeuser}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-nodepass}
+      - POSTGRES_DB=${POSTGRES_DB:-nodeapi}
+    volumes:
+      - node_postgres_data:/var/lib/postgresql/data
+      - ../postgres-init:/docker-entrypoint-initdb.d:ro
+    ports:
+      # Host-side access; containers connect to postgres:5432 directly.
+      - "${POSTGRES_HOST_PORT:-15432}:5432"
+    networks:
+      - ddev_default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: $DDEV_APPROOT
+
+volumes:
+  node_postgres_data:
+    name: ddev-${DDEV_SITENAME}_node_postgres_data

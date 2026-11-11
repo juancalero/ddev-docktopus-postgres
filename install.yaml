@@ -1,0 +1,46 @@
+name: ddev-docktopus-postgres
+
+ddev_version_constraint: '>= v1.24.10'
+
+project_files:
+  - docker-compose.node-postgres.yaml
+  - .env.ddev-docktopus-postgres
+
+post_install_actions:
+  - |
+    #ddev-description:Create the postgres-init seed if the project has none
+    if [ ! -f ../postgres-init/init.sql ]; then
+      mkdir -p ../postgres-init
+      cat > ../postgres-init/init.sql <<'EOF'
+    -- #ddev-generated: If you want to edit and own this file, remove this line.
+    -- Seed data for the Node API (from the docktopus stack).
+    CREATE TABLE IF NOT EXISTS "user" (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(100) NOT NULL,
+      email VARCHAR(100) UNIQUE NOT NULL
+    );
+
+    INSERT INTO "user" (name, email) VALUES
+    ('Alice Smith', 'alice@example.com'),
+    ('Bob Johnson', 'bob@example.com'),
+    ('Charlie Lee', 'charlie@example.com'),
+    ('Diana Adams', 'diana@example.com'),
+    ('Ethan Wright', 'ethan@example.com'),
+    ('Fiona Green', 'fiona@example.com'),
+    ('George Young', 'george@example.com'),
+    ('Hannah Scott', 'hannah@example.com'),
+    ('Isaac Turner', 'isaac@example.com'),
+    ('Julia Brown', 'julia@example.com');
+    EOF
+      echo "ddev-docktopus-postgres: created postgres-init/init.sql seed (runs on first database start only)."
+    else
+      echo "ddev-docktopus-postgres: existing postgres-init/init.sql left untouched."
+    fi
+
+removal_actions:
+  - |
+    #ddev-description:Remove the generated postgres-init seed if unmodified
+    if [ -f ../postgres-init/init.sql ] && grep -q '#ddev-generated' ../postgres-init/init.sql; then
+      rm -f ../postgres-init/init.sql
+      rmdir ../postgres-init 2>/dev/null || true
+    fi
