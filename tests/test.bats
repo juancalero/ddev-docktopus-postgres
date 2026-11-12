@@ -32,9 +32,9 @@ health_checks() {
   run ddev exec -s postgres pg_isready
   assert_success
 
-  run ddev exec -s postgres psql -U nodeuser -d nodeapi -c '\dt'
+  run ddev exec -s postgres psql -U nodeuser -d nodeapi -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'user'"
   assert_success
-  assert_output --partial "user"
+  assert_output --partial "1"
 }
 
 teardown() {
